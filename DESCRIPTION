@@ -4,7 +4,8 @@ Version: 2017.08.09
 Authors@R: person("Emanuele", "Bardelli", email = "bardellie@gmail.com", role = c("aut", "cre"))
 Description: This is just a wrapper for mplus.R: R scripts for extracting and plotting data stored in Mplus graphic information in GH5 files.  Uses the rhdf5 package for loading the the GH5 file.
 Depends:
-    R (>= 3.4.0),
+    R (>= 3.4.0)
+biocViews :
     rhdf5 (>= 2.20.0)
 Imports:
     rhdf5
