@@ -38,19 +38,6 @@
 # package version 2.4.0.
 #
 
-if (require(rhdf5,quietly=TRUE)) {
-	print("Loaded rhdf5 package")
-} else {
-	print("trying to install rhdf5 from bioconductor.org")
-	source("https://bioconductor.org/biocLite.R")
-	biocLite("rhdf5")
-	if (require(rhdf5)) {
-		print("Loaded missing rhdf5 package ")
-	} else {
-		stop("could not install rhdf5")
-	}
-}
-
 ##########################################################################
 #
 # mplus.view.plots - loads the file and lists all available plots
