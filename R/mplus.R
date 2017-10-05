@@ -5846,7 +5846,7 @@ mplus.compute.irt.icc <- function(file,group,xvar,uvar,cat,xvector,covariates) {
 	shift <- 0.0
 	for (i in c(1:num_fx)) {
 		if (i != fidx) {
-			shift <- shift + covariates[i]*gh5$irt_data$loading[ridx,i,group]
+			shift <- shift + covariates[i]*gh5$irt_data$loading[i,ridx,group]
 		}
 	}
 
@@ -5975,7 +5975,7 @@ mplus.compute.irt.iic <- function(file,group,xvar,uvar,xvector,covariates) {
 	shift <- 0.0
 	for (i in c(1:num_fx)) {
 		if (i != fidx) {
-			shift <- shift + covariates[i]*gh5$irt_data$loading[ridx,i,group]
+			shift <- shift + covariates[i]*gh5$irt_data$loading[i,ridx,group]
 		}
 	}
 
