@@ -18,3 +18,7 @@ library(mplus.R)
 ```
 
 to load the library.
+
+## How To
+
+See the official [guide](https://www.statmodel.com/mplus-R/Mplus%20R%20tutorial.pdf) on how to use it.
