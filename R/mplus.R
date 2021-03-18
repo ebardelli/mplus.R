@@ -28,6 +28,8 @@
 #            categories of a single variable to mplus.plot.sample_proportions and mplus.plot.estimated_probabilities.
 #            Also add mplus.plot.sample_proportions_and_estimated_probabilities for plotting both.
 # 2017-08-09 Fix loop plots for multiple labels in mplus.plot.loop.  Also add more arguments for customizations.
+# 2017-10-17 Fix mplus.plot.irt.icc and mplus.plot.irt.iic getting mean of factor in other groups.
+# 2021-01-13 Fix functions for bayesian/predictive since attributes changed to datasets.
 #
 # Written by: Thuy Nguyen
 #             Muthen & Muthen
@@ -37,6 +39,19 @@
 # Bernd Fischer and Gregoire Pau (). rhdf5: HDF5 interface to R. R
 # package version 2.4.0.
 #
+
+if (require(rhdf5,quietly=TRUE)) {
+	print("Loaded rhdf5 package")
+} else {
+	print("trying to install rhdf5 from bioconductor.org")
+	source("https://bioconductor.org/biocLite.R")
+	biocLite("rhdf5")
+	if (require(rhdf5)) {
+		print("Loaded missing rhdf5 package ")
+	} else {
+		stop("could not install rhdf5")
+	}
+}
 
 ##########################################################################
 #
@@ -3269,7 +3284,7 @@ mplus.list.bayesian.predictive.labels <- function(file) {
 	}
 
 	cat(c("\nList of parameters to use in the following functions:\n"))
-	cat(c(" - mplus.plot.bayesian.predictive.scatterplots\n"))
+	cat(c(" - mplus.plot.bayesian.predictive.scatterplot\n"))
 	cat(c(" - mplus.plot.bayesian.predictive.distribution\n"))
 	cat(c(" - mplus.get.bayesian.predictive.observed\n"))
 	cat(c(" - mplus.get.bayesian.predictive.replicated\n"))
@@ -3281,7 +3296,7 @@ mplus.list.bayesian.predictive.labels <- function(file) {
 	cat(c("\nPredictive labels:\n"))
 
 	# get the parameter statements from bayesian_data and lookup the indices
-	statements <- mplus.get.group.attribute(file, 'bayesian_data/predictive', 'labels')
+	statements <- mplus.get.group.dataset(file, 'bayesian_data/predictive', 'labels')
 	statements <- gsub("(^\\s+|\\s+$)", "", statements, perl=TRUE)
 	statements
 }
@@ -3315,7 +3330,7 @@ mplus.get.bayesian.predictive.observed <- function(file,plabel) {
 	}
 
 	if (is.character(plabel)) {
-		statements <- mplus.get.group.attribute(file, 'bayesian_data/predictive', 'labels')
+		statements <- mplus.get.group.dataset(file, 'bayesian_data/predictive', 'labels')
 		statements <- tolower(statements)
 		plabel <- tolower(plabel)
 		paramidx <- pmatch(plabel, statements, nomatch=0)
@@ -3371,7 +3386,7 @@ mplus.get.bayesian.predictive.replicated <- function(file,plabel) {
 	}
 
 	if (is.character(plabel)) {
-		statements <- mplus.get.group.attribute(file, 'bayesian_data/predictive', 'labels')
+		statements <- mplus.get.group.dataset(file, 'bayesian_data/predictive', 'labels')
 		statements <- tolower(statements)
 		plabel <- tolower(plabel)
 		paramidx <- pmatch(plabel, statements, nomatch=0)
@@ -3426,7 +3441,7 @@ mplus.get.bayesian.predictive.lowerci <- function(file,plabel) {
 	}
 
 	if (is.character(plabel)) {
-		statements <- mplus.get.group.attribute(file, 'bayesian_data/predictive', 'labels')
+		statements <- mplus.get.group.dataset(file, 'bayesian_data/predictive', 'labels')
 		statements <- tolower(statements)
 		plabel <- tolower(plabel)
 		paramidx <- pmatch(plabel, statements, nomatch=0)
@@ -3481,7 +3496,7 @@ mplus.get.bayesian.predictive.upperci <- function(file,plabel) {
 	}
 
 	if (is.character(plabel)) {
-		statements <- mplus.get.group.attribute(file, 'bayesian_data/predictive', 'labels')
+		statements <- mplus.get.group.dataset(file, 'bayesian_data/predictive', 'labels')
 		statements <- tolower(statements)
 		plabel <- tolower(plabel)
 		paramidx <- pmatch(plabel, statements, nomatch=0)
@@ -3537,7 +3552,7 @@ mplus.get.bayesian.predictive.pvalue <- function(file,plabel) {
 	}
 
 	if (is.character(plabel)) {
-		statements <- mplus.get.group.attribute(file, 'bayesian_data/predictive', 'labels')
+		statements <- mplus.get.group.dataset(file, 'bayesian_data/predictive', 'labels')
 		statements <- tolower(statements)
 		plabel <- tolower(plabel)
 		paramidx <- pmatch(plabel, statements, nomatch=0)
@@ -3592,10 +3607,10 @@ mplus.get.bayesian.predictive.pvalue_type <- function(file,plabel) {
 		stop("- requires the predictive label or index.\n\nUse mplus.list.bayesian.predictive.labels to get the list of parameters.")
 	}
 
-	ptypes <- mplus.get.group.attribute(file,'/bayesian_data/predictive','types')
+	ptypes <- mplus.get.group.dataset(file,'bayesian_data/predictive','types')
 
 	if (is.character(plabel)) {
-		statements <- mplus.get.group.attribute(file, 'bayesian_data/predictive', 'labels')
+		statements <- mplus.get.group.dataset(file, 'bayesian_data/predictive', 'labels')
 		statements <- tolower(statements)
 		plabel <- tolower(plabel)
 		paramidx <- pmatch(plabel, statements, nomatch=0)
@@ -3649,7 +3664,7 @@ mplus.plot.bayesian.predictive.scatterplot <- function(file,plabel) {
 		stop("- requires the predictive label or index.\n\nUse mplus.list.bayesian.predictive.labels to get the list of parameters.")
 	}
 
-	statements <- mplus.get.group.attribute(file, 'bayesian_data/predictive', 'labels')
+	statements <- mplus.get.group.dataset(file, 'bayesian_data/predictive', 'labels')
 	statements <- gsub("(^\\s+|\\s+$)", "", statements, perl=TRUE)
 
 	dims <- attr(statements,"dim")
@@ -3758,7 +3773,7 @@ mplus.plot.bayesian.predictive.distribution <- function(file,plabel,bins=100) {
 		stop("- requires the index of the predictive label\n\nUse mplus.list.bayesian.predictive.labels to get the list of parameters.")
 	}
 
-	statements <- mplus.get.group.attribute(file, 'bayesian_data/predictive', 'labels')
+	statements <- mplus.get.group.dataset(file, 'bayesian_data/predictive', 'labels')
 	statements <- gsub("(^\\s+|\\s+$)", "", statements, perl=TRUE)
 
 	dims <- attr(statements,"dim")
@@ -4334,7 +4349,7 @@ mplus.get.loop.xvalues <- function(file) {
 #
 # eg. mplus.plot.loop('ex8.1.gh5',1)
 #
-mplus.plot.loop <- function(file,label=1,showgrid=TRUE,ylim,linecolors,linetype) {
+mplus.plot.loop <- function(file,label=1,showgrid=TRUE,ylim,linecolors,linetype,noci=FALSE,xlabel,ylabel) {
 	if (missing(file)) {
 		stop("- name of the GH5 file is required")
 	}
@@ -4395,18 +4410,29 @@ mplus.plot.loop <- function(file,label=1,showgrid=TRUE,ylim,linecolors,linetype)
 		loopvar <- mplus.get.group.attribute(file,'loop_data','loop_variable')
 		loopvar <- gsub("(^\\s+|\\s+$)", "", loopvar, perl=TRUE)
 
-		xx <- array(0,c(3*num_loop,props[2]))
-		yy <- array(0,c(3*num_loop,props[2]))
+		if (noci) {
+		  xx <- array(0,c(num_loop,props[2]))
+		  yy <- array(0,c(num_loop,props[2]))
+		} else {
+		  xx <- array(0,c(3*num_loop,props[2]))
+		  yy <- array(0,c(3*num_loop,props[2]))
+		}
 
 		for (r in c(1:num_loop)) {
 			loopidx <- loopindices[r]
-			xx[3*(r-1)+1,] <- mplus.get.loop.xvalues(file)
-			xx[3*(r-1)+2,] <- mplus.get.loop.xvalues(file)
-			xx[3*(r-1)+3,] <- mplus.get.loop.xvalues(file)
+			if (noci) {
+			  xx[(r-1)+1,] <- mplus.get.loop.xvalues(file)
 
-			yy[3*(r-1)+1,] <- mplus.get.loop.estimates(file,loopidx)
-			yy[3*(r-1)+2,] <- mplus.get.loop.lowerci(file,loopidx)
-			yy[3*(r-1)+3,] <- mplus.get.loop.upperci(file,loopidx)
+			  yy[(r-1)+1,] <- mplus.get.loop.estimates(file,loopidx)
+			} else {
+			  xx[3*(r-1)+1,] <- mplus.get.loop.xvalues(file)
+			  xx[3*(r-1)+2,] <- mplus.get.loop.xvalues(file)
+			  xx[3*(r-1)+3,] <- mplus.get.loop.xvalues(file)
+			  
+			  yy[3*(r-1)+1,] <- mplus.get.loop.estimates(file,loopidx)
+			  yy[3*(r-1)+2,] <- mplus.get.loop.lowerci(file,loopidx)
+			  yy[3*(r-1)+3,] <- mplus.get.loop.upperci(file,loopidx)
+			}
 		}
 
 		# plot the loop
@@ -4414,11 +4440,17 @@ mplus.plot.loop <- function(file,label=1,showgrid=TRUE,ylim,linecolors,linetype)
 		if (missing(ylim)) {
 			ylim <- c(min(yy),max(yy))
 		}
-		plot(xx,yy,xlab=loopvar,ylab="Labels",main=cstr,type='n',ylim=ylim)
+		
+		if (missing(xlabel)) {
+		  xlabel <- loopvar
+		}
+		if (missing(ylabel)) {
+		  ylabel <- c("Labels")
+		}
+		plot(xx,yy,xlab=xlabel,ylab=ylabel,main=cstr,type='n',ylim=ylim)
 
 		if (missing(linecolors)) {
-			colors <- rainbow(num_loop)
-			linecolors <- colors
+			linecolors <- rainbow(num_loop)
 		}
 		if (missing(linetype)) {
 			linetype <- array(2,c(num_loop))
@@ -4443,7 +4475,7 @@ mplus.plot.loop <- function(file,label=1,showgrid=TRUE,ylim,linecolors,linetype)
 			lty[i] = 1
 			lwd[i] = 2.5
 		}
-		legend("top",ldesc,col=colors,lty=lty,lwd=lwd)
+		legend("top",ldesc,col=linecolors,lty=lty,lwd=lwd)
 
 		return(invisible())
 	} else if (is.character(label)) {
@@ -4485,11 +4517,16 @@ mplus.plot.loop <- function(file,label=1,showgrid=TRUE,ylim,linecolors,linetype)
 		ylim <- c(min(yy),max(yy))
 	}
 
-	plot(xx,yy,xlab=loopvar,ylab=labels[loopidx],main=cstr,type='n',ylim=ylim)
+	if (missing(xlabel)) {
+	  xlabel <- loopvar
+	}
+	if (missing(ylabel)) {
+	  ylabel <- labels[loopidx]
+	}
+	plot(xx,yy,xlab=xlabel,ylab=ylabel,main=cstr,type='n',ylim=ylim)
 
 	if (missing(linecolors)) {
-		colors <- rainbow(1)
-		linecolors <- colors
+		linecolors <- rainbow(1)
 	}
 	if (missing(linetype)) {
 		linetype <- array(2,c(1))
@@ -5846,7 +5883,7 @@ mplus.compute.irt.icc <- function(file,group,xvar,uvar,cat,xvector,covariates) {
 	shift <- 0.0
 	for (i in c(1:num_fx)) {
 		if (i != fidx) {
-			shift <- shift + covariates[i]*gh5$irt_data$loading[i,ridx,group]
+			shift <- shift + covariates[i]*gh5$irt_data$loading[ridx,i,group]
 		}
 	}
 
@@ -5975,7 +6012,7 @@ mplus.compute.irt.iic <- function(file,group,xvar,uvar,xvector,covariates) {
 	shift <- 0.0
 	for (i in c(1:num_fx)) {
 		if (i != fidx) {
-			shift <- shift + covariates[i]*gh5$irt_data$loading[i,ridx,group]
+			shift <- shift + covariates[i]*gh5$irt_data$loading[ridx,i,group]
 		}
 	}
 
@@ -6229,10 +6266,10 @@ mplus.plot.irt.icc <- function(file,group=1,xvar=1,uvar,cat,cat2,covariates,xran
 	fsd = sqrt(variances[fidx])
 
 	xmult <- switch(xrange, 1, 2, 3, 4, 5, 6)
-	vmin = means[fidx] + (-1) * xmult * fsd
-	vmax = means[fidx] + xmult * fsd
+	vmin <- means[fidx,group] + (-1) * xmult * fsd
+	vmax <- means[fidx,group] + xmult * fsd
 
-	vstep = switch(xstep, 1.0, 0.5, 0.1, 0.05, 0.5*fsd, 0.25*fsd, 0.2*fsd, 0.1*fsd, 0.05*fsd, 0.02*fsd, 0.01*fsd)
+	vstep <- switch(xstep, 1.0, 0.5, 0.1, 0.05, 0.5*fsd, 0.25*fsd, 0.2*fsd, 0.1*fsd, 0.05*fsd, 0.02*fsd, 0.01*fsd)
 	steps <- seq(vmin,vmax,by=vstep)
 
 	print(steps)
@@ -6516,10 +6553,10 @@ mplus.plot.irt.iic <- function(file,group=1,xvar=1,uvar,covariates,xrange=3,xste
 	fsd = sqrt(variances[fidx])
 
 	xmult <- switch(xrange, 1, 2, 3, 4, 5, 6)
-	vmin = means[fidx] + (-1) * xmult * fsd
-	vmax = means[fidx] + xmult * fsd
+	vmin <- means[fidx,group] + (-1) * xmult * fsd
+	vmax <- means[fidx,group] + xmult * fsd
 
-	vstep = switch(xstep, 1.0, 0.5, 0.1, 0.05, 0.5*fsd, 0.25*fsd, 0.2*fsd, 0.1*fsd, 0.05*fsd, 0.02*fsd, 0.01*fsd)
+	vstep <- switch(xstep, 1.0, 0.5, 0.1, 0.05, 0.5*fsd, 0.25*fsd, 0.2*fsd, 0.1*fsd, 0.05*fsd, 0.02*fsd, 0.01*fsd)
 	steps <- seq(vmin,vmax,by=vstep)
 
 	# if cat is missing, then we plot all categories
