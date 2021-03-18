@@ -10,3 +10,11 @@ To install as a library, run
 library(devtools)
 install_github("ebardelli/mplus.R")
 ```
+
+then
+
+```
+library(mplus.R)
+```
+
+to load the library.
